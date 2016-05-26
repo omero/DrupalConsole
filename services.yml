@@ -215,3 +215,7 @@ services:
         class: Drupal\Console\Command\Module\DebugCommand
         tags:
           - { name: console.command }
+  module_install:
+        class: Drupal\Console\Command\Module\InstallCommand
+        tags:
+          - { name: console.command }

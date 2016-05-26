@@ -11,7 +11,8 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Drupal\Console\Command\ContainerAwareCommand;
+use Symfony\Component\Console\Command\Command;
+use Drupal\Console\Command\Shared\ContainerAwareCommandTrait;
 use Drupal\Console\Command\ProjectDownloadTrait;
 use Drupal\Console\Style\DrupalStyle;
 
@@ -19,8 +20,9 @@ use Drupal\Console\Style\DrupalStyle;
  * Class InstallCommand
  * @package Drupal\Console\Command\Module
  */
-class InstallCommand extends ContainerAwareCommand
+class InstallCommand extends Command
 {
+    use ContainerAwareCommandTrait;
     use ProjectDownloadTrait;
 
     /**
@@ -68,7 +70,7 @@ class InstallCommand extends ContainerAwareCommand
         $modules = $input->getArgument('module');
         $latest = $input->getOption('latest');
 
-        $this->getDrupalHelper()->loadLegacyFile(
+        $this->get('site')->loadLegacyFile(
             'core/includes/bootstrap.inc'
         );
 
@@ -103,7 +105,7 @@ class InstallCommand extends ContainerAwareCommand
                 )
             );
 
-            $moduleInstaller = $this->getModuleInstaller();
+            $moduleInstaller = $this->getDrupalService('module_installer');
             drupal_static_reset('system_rebuild_module_data');
 
             $moduleInstaller->install($unInstalledModules, true);
@@ -119,6 +121,6 @@ class InstallCommand extends ContainerAwareCommand
             return 1;
         }
 
-        $this->getChain()->addCommand('cache:rebuild', ['cache' => 'all']);
+        $this->get('chain_queue')->addCommand('cache:rebuild', ['cache' => 'all']);
     }
 }
