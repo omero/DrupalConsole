@@ -11,15 +11,17 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Drupal\Console\Command\ContainerAwareCommand;
+use Symfony\Component\Console\Command\Command;
+use Drupal\Console\Command\Shared\ContainerAwareCommandTrait;
 use Drupal\Console\Command\ProjectDownloadTrait;
 use Drupal\Console\Style\DrupalStyle;
 use Drupal\Console\Command\PHPProcessTrait;
 
-class UninstallCommand extends ContainerAwareCommand
+class UninstallCommand extends Command
 {
     use PHPProcessTrait;
     use ProjectDownloadTrait;
+    use ContainerAwareCommandTrait;
 
     /**
      * {@inheritdoc}
@@ -55,7 +57,7 @@ class UninstallCommand extends ContainerAwareCommand
         $io = new DrupalStyle($input, $output);
         $module = $input->getArgument('module');
         $composer = $input->getOption('composer');
-        $modules = $this->getSite()->getModules(true, true, false, true, true, true);
+        $modules = $this->getApplication()->getSite()->getModules(true, true, false, true, true, true);
 
         if (!$module) {
             $module = $this->modulesUninstallQuestion($io);
@@ -70,11 +72,11 @@ class UninstallCommand extends ContainerAwareCommand
         $io =  new DrupalStyle($input, $output);
         $composer = $input->getOption('composer');
 
-        $this->getDrupalHelper()->loadLegacyFile('/core/modules/system/system.module');
+        $this->get('site')->loadLegacyFile('/core/modules/system/system.module');
 
-        $extension_config = $this->getConfigFactory()->getEditable('core.extension');
+        $extension_config = $this->getDrupalService('config.factory')->getEditable('core.extension');
 
-        $moduleInstaller = $this->getModuleInstaller();
+        $moduleInstaller = $this->getDrupalService('module_installer');
 
         // Get info about modules available
         $module_data = system_rebuild_module_data();
@@ -167,6 +169,6 @@ class UninstallCommand extends ContainerAwareCommand
             return;
         }
         // Run cache rebuild to see changes in Web UI
-        $this->getChain()->addCommand('cache:rebuild', ['cache' => 'discovery']);
+        $this->get('chain_queue')->addCommand('cache:rebuild', ['cache' => 'discovery']);
     }
 }

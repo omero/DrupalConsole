@@ -219,3 +219,7 @@ services:
         class: Drupal\Console\Command\Module\InstallCommand
         tags:
           - { name: console.command }
+  module_uninstall:
+        class: Drupal\Console\Command\Module\UninstallCommand
+        tags:
+          - { name: console.command }
